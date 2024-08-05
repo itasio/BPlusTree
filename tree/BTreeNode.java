@@ -77,7 +77,7 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> {
 	/**
 	 * Search a key on current node, if found the key then return its position,
 	 * otherwise return -1 for a leaf node,
-	 * return the child node index which should contain the key for a internal node.
+	 * return the child node index which should contain the key for an internal node.
 	 */
 	public abstract int search(TKey key);
 

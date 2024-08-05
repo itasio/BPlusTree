@@ -42,7 +42,7 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 
 	@Override
 	public int search(TKey key) {
-		int index = 0;
+		int index;
 		for (index = 0; index < this.getKeyCount(); ++index) {
 			int cmp = this.getKey(index).compareTo(key);
 			if (cmp == 0) {
@@ -77,8 +77,8 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 	}
 
 	/**
-	 * When splits a internal node, the middle key is kicked out and be pushed to parent node.
-	 * @throws IOException
+	 * When splits an internal node, the middle key is kicked out and be pushed to parent node.
+	 *
 	 */
 	@Override
 	protected BTreeNode<TKey> split() throws IOException {
@@ -124,7 +124,7 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 	/* The codes below are used to support delete operation */
 
 	private void deleteAt(int index) throws IOException {		//Multicounter 2
-		int i = 0;
+		int i;
 		for (i = index; i < this.getKeyCount() - 1; ++i) {
 			this.setKey(i, this.getKey(i + 1));
 			this.setChild(i + 1, this.getChild(i + 2));			//Multicounter 2
@@ -169,7 +169,7 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 		// remove the sink key, keep the left child and abandon the right child
 		this.deleteAt(index);															//Multicounter 2
 
-		// check whether need to propagate borrow or fusion to parent
+		// check whether is needed to propagate borrow or fusion to parent
 		if (this.isUnderflow()) {
 			if (this.getParent() == null) {												//Multicounter 2
 				// current node is root, only remove keys or delete the whole root node
@@ -213,7 +213,7 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 	protected TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex) throws IOException {	//Multicounter 2
 		BTreeInnerNode<TKey> siblingNode = (BTreeInnerNode<TKey>)sibling;
 
-		TKey upKey = null;
+		TKey upKey;
 		if (borrowIndex == 0) {
 			// borrow the first key from right sibling, append it to tail
 			int index = this.getKeyCount();
@@ -236,10 +236,10 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 
 	protected byte[] toByteArray() throws IOException {
 		// must include the index of the data page to the left sibling (int == 4 bytes), to the right sibling,
-		// to the parent node, the number of keys (keyCount), the type of node (inner node/leaf node) and the list of keys and list of children (each key 4 byte int, each children 4 byte int pointing to the a data page offeset)
-		// We do not need the isDirty flag and the storageDataPage
+		// to the parent node, the number of keys (keyCount), the type of node (inner node/leaf node) and the list of keys and list of children (each key 4 byte int, each children 4 byte int pointing to the data page offeset)
+		// We do not need the isDirty flag and the storageDataPage,
 		// so we need
-		// 4 bytes for marking this as a inner node (e.g. an int with value = 1 for inner node and 2 for leaf node)
+		// 4 bytes for marking this as an inner node (e.g. an int with value = 1 for inner node and 2 for leaf node)
 		// 4 bytes for left sibling
 		// 4 bytes for right sibling
 		// 4 bytes for parent

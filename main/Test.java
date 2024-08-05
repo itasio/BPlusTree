@@ -30,81 +30,107 @@ public class Test {
     static final int rangeMax = 1000;
     static final int minVal = 1;
     static final int maxVal = 10001;
-    public static void main(String[] args) throws IOException {
-        RandomAccessFile nodes = new RandomAccessFile(StorageCache.getNodeStorageFilename(), "rw");
-        RandomAccessFile datas= new RandomAccessFile(StorageCache.getDataStorageFilename(), "rw");
-        nodes.setLength(0);
-        datas.setLength(0);
-        int [] keys = intArrayGenerator(minKey, maxKey, numKeys+numOfSearches);
-        int [] searchKeys = intArrayGenerator(minKey, maxKey, numOfSearches);
-
-        BTree<Integer, Data> tree = new BTree<Integer, Data>();
-
-		/*tree.insert(Integer.valueOf(30), new Data(1,2,3,4,17, 18, 19, 20));
-		tree.insert(Integer.valueOf(20), new Data(5,6,7,821, 22, 23, 24, 29));
-		tree.insert(Integer.valueOf(10), new Data(9,10,11,12, 25, 26, 27, 28));
-		tree.insert(Integer.valueOf(40), new Data(13,14,15,16, 30, 31, 32, 33));
-		tree.delete(80);
-		System.out.println(tree.search(10));
-		System.out.println(tree.search(20));
-		tree.searchRange(10, 30);
-		tree.searchRange(10, 10);
-		tree.delete(20);
-		tree.delete(20);
-		tree.delete(30);
-		tree.delete(10);
-		tree.delete(80);
-		tree.searchRange(20, 20);
-		tree.searchRange(10, 30);
-		System.out.println(tree.search(10));
-		System.out.println(tree.search(20));
-		*/
+    public static void main(String[] args){
+        RandomAccessFile nodes = null;
+        RandomAccessFile data = null;
 
 
-        //insert 10^5 +20 random keys with 8 random values
-        //count disk accesses for the last 20 insertions
-        int i = 0;
-        while(i < numKeys) {
-            int[] dataForEachKey = intArrayGenerator(minVal, maxVal, Data.getSize());
-            tree.insert(Integer.valueOf(keys[i]), new Data(dataForEachKey));
-            i++;
+        try {
+            nodes = new RandomAccessFile(StorageCache.getNodeStorageFilename(), "rw");
+            data= new RandomAccessFile(StorageCache.getDataStorageFilename(), "rw");
+
+
+            nodes.setLength(0);
+            data.setLength(0);
+            int [] keys = intArrayGenerator(minKey, maxKey, numKeys+numOfSearches);
+            int [] searchKeys = intArrayGenerator(minKey, maxKey, numOfSearches);
+    
+            BTree<Integer, Data> tree = new BTree<Integer, Data>();
+    
+            /*tree.insert(Integer.valueOf(30), new Data(1,2,3,4,17, 18, 19, 20));
+            tree.insert(Integer.valueOf(20), new Data(5,6,7,821, 22, 23, 24, 29));
+            tree.insert(Integer.valueOf(10), new Data(9,10,11,12, 25, 26, 27, 28));
+            tree.insert(Integer.valueOf(40), new Data(13,14,15,16, 30, 31, 32, 33));
+            tree.delete(80);
+            System.out.println(tree.search(10));
+            System.out.println(tree.search(20));
+            tree.searchRange(10, 30);
+            tree.searchRange(10, 10);
+            tree.delete(20);
+            tree.delete(20);
+            tree.delete(30);
+            tree.delete(10);
+            tree.delete(80);
+            tree.searchRange(20, 20);
+            tree.searchRange(10, 30);
+            System.out.println(tree.search(10));
+            System.out.println(tree.search(20));
+            */
+    
+    
+            //insert 10^5 +20 random keys with 8 random values
+            //count disk accesses for the last 20 insertions
+            int i = 0;
+            while(i < numKeys) {
+                int[] dataForEachKey = intArrayGenerator(minVal, maxVal, Data.getSize());
+                tree.insert(Integer.valueOf(keys[i]), new Data(dataForEachKey));
+                i++;
+            }
+            MultiCounter.resetCounter(1);		//reset counter of insertion
+    
+            for(; i < keys.length; i++) {
+                int[] dataForEachKey = intArrayGenerator(minVal, maxVal, Data.getSize());
+                tree.insert(Integer.valueOf(keys[i]), new Data(dataForEachKey));			//MultiCounter 1
+            }
+            System.out.println("Mean number of disk accesses for insertion in B+ tree: "+(float)MultiCounter.getCount(1) / numOfSearches);
+    
+            //make 20 key searches, 20 deletions, 20 range queries(range = 10), 20 range queries(range = 1000)
+            System.out.println("(Key searched, Page(Found) / null(Not Found)):");
+            for(i = 0; i < numOfSearches; i++) {
+                System.out.println(searchKeys[i]+", "+tree.search(searchKeys[i]));								//MultiCounter 4
+            }
+            System.out.println("Mean number of disk accesses for key search in B+ tree: "+(float)MultiCounter.getCount(4) / numOfSearches);
+    
+            System.out.println("(Keys found, Associated values):");
+            for(i = 0; i < numOfSearches; i++) {
+                System.out.println("Search range "+searchKeys[i]+" - "+(searchKeys[i]+rangeMin));
+                tree.searchRange(searchKeys[i], searchKeys[i]+rangeMin);					//MultiCounter 5
+            }
+            System.out.println("Mean number of comparisons in range searching(10) in B+ tree: "+(float)MultiCounter.getCount(5) / numOfSearches);
+    
+            //reset MultiCounter for rangeSearch
+            MultiCounter.resetCounter(5);
+    
+            System.out.println("(Keys found, Associated values):");
+            for(i = 0; i < numOfSearches; i++) {
+                System.out.println("Search range "+searchKeys[i]+"- "+(searchKeys[i]+rangeMax));
+                tree.searchRange(searchKeys[i], searchKeys[i]+rangeMax);					//MultiCounter 5
+            }
+            System.out.println("Mean number of comparisons in range searching(1000) in B+ tree: "+(float)MultiCounter.getCount(5) / numOfSearches);
+    
+            for(i = 0; i < numOfSearches; i++) {
+                tree.delete(searchKeys[i]);													//MultiCounter 6
+            }
+            System.out.println("Mean number of disk accesses for deletion in B+ tree: "+(float)MultiCounter.getCount(6) / numOfSearches);
+        } catch (IOException e){
+            e.printStackTrace();
         }
-        MultiCounter.resetCounter(1);		//reset counter of insertion
-
-        for(; i < keys.length; i++) {
-            int[] dataForEachKey = intArrayGenerator(minVal, maxVal, Data.getSize());
-            tree.insert(Integer.valueOf(keys[i]), new Data(dataForEachKey));			//MultiCounter 1
+        finally {
+            if(nodes != null) {
+                try {
+                    nodes.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (data != null) {
+                try {
+                    data.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        System.out.println("Mean number of disk accesses for insertion in B+ tree: "+(float)MultiCounter.getCount(1) / numOfSearches);
-
-        //make 20 key searches, 20 deletions, 20 range queries(range = 10), 20 range queries(range = 1000)
-        System.out.println("(Key searched, Page(Found) / null(Not Found)):");
-        for(i = 0; i < numOfSearches; i++) {
-            System.out.println(searchKeys[i]+", "+tree.search(searchKeys[i]));								//MultiCounter 4
-        }
-        System.out.println("Mean number of disk accesses for key search in B+ tree: "+(float)MultiCounter.getCount(4) / numOfSearches);
-
-        System.out.println("(Keys found, Associated values):");
-        for(i = 0; i < numOfSearches; i++) {
-            System.out.println("Search range "+searchKeys[i]+" - "+(searchKeys[i]+rangeMin));
-            tree.searchRange(searchKeys[i], searchKeys[i]+rangeMin);					//MultiCounter 5
-        }
-        System.out.println("Mean number of comparisons in range searching(10) in B+ tree: "+(float)MultiCounter.getCount(5) / numOfSearches);
-
-        //reset MultiCounter for rangeSearch
-        MultiCounter.resetCounter(5);
-
-        System.out.println("(Keys found, Associated values):");
-        for(i = 0; i < numOfSearches; i++) {
-            System.out.println("Search range "+searchKeys[i]+"- "+(searchKeys[i]+rangeMax));
-            tree.searchRange(searchKeys[i], searchKeys[i]+rangeMax);					//MultiCounter 5
-        }
-        System.out.println("Mean number of comparisons in range searching(1000) in B+ tree: "+(float)MultiCounter.getCount(5) / numOfSearches);
-
-        for(i = 0; i < numOfSearches; i++) {
-            tree.delete(searchKeys[i]);													//MultiCounter 6
-        }
-        System.out.println("Mean number of disk accesses for deletion in B+ tree: "+(float)MultiCounter.getCount(6) / numOfSearches);
     }
 
 

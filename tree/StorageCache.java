@@ -1,5 +1,4 @@
 package tree;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -18,9 +17,9 @@ public class StorageCache {
 	private static StorageCache instance;
 	
 	private static HashMap retrievedNodes = null;
-	private static HashMap retrievedDatas = null;
+	private static HashMap retrievedData = null;
 	
-	// make this private so that noone can create instances of this class
+	// make this private so that no one can create instances of this class
 	private StorageCache() {
 		
 	}
@@ -32,10 +31,10 @@ public class StorageCache {
 		StorageCache.retrievedNodes.put(dataPageIndex, node);
 	}
 	private void cacheData(int dataByteOffset, Data data) {
-		if (StorageCache.retrievedDatas == null) {
-			StorageCache.retrievedDatas = new HashMap();
+		if (StorageCache.retrievedData == null) {
+			StorageCache.retrievedData = new HashMap();
 		}
-		StorageCache.retrievedDatas.put(dataByteOffset, data);
+		StorageCache.retrievedData.put(dataByteOffset, data);
 	}
 	
 	private BTreeNode getNodeFromCache(Integer dataPageIndex) {
@@ -46,11 +45,11 @@ public class StorageCache {
 		return (BTreeNode)StorageCache.retrievedNodes.get(dataPageIndex);		//returns null if it doesn't exists
 	}
 	private Data getDataFromCache(int dataByteOffset) {
-		if (StorageCache.retrievedDatas == null) {
+		if (StorageCache.retrievedData == null) {
 			return null;
 		}
 		
-		return (Data)StorageCache.retrievedDatas.get(dataByteOffset);		//returns null if it doesn't exists
+		return (Data)StorageCache.retrievedData.get(dataByteOffset);		//returns null if it doesn't exists
 	}	
 	
 	public static StorageCache getInstance() {
@@ -60,14 +59,14 @@ public class StorageCache {
 		return StorageCache.instance;
 	}
 	
-	public void flush() throws IOException {	//Multicounter 3
+	public void flush() throws IOException {	//MultiCounter 3
 		flushData();		//page where data where written in data file
 		flushNodes();	
 	}
 	
 	// checks each node in retrievedNodes whether it is dirty
 	// If they are dirty, writes them to disk
-	private void flushNodes() throws IOException {	//Multicounter 3
+	private void flushNodes() throws IOException {	//MultiCounter 3
 		BTreeNode node;
 		if (StorageCache.retrievedNodes == null)
 			return;
@@ -76,7 +75,7 @@ public class StorageCache {
 			if (node.isDirty()) {
 				byte[] byteArray = node.toByteArray();
 				RandomAccessFile fl = new RandomAccessFile (getNodeStorageFilename(), "rw");
-				fl.seek(BTreeNode.PageSize*(int)dataPageIndex);			//go to page i want
+				fl.seek(BTreeNode.PageSize*(int)dataPageIndex);			//go to page I want
 				fl.write(byteArray);
 				int lenb = byteArray.length;
 				int lenfl = (int)fl.length();
@@ -95,23 +94,23 @@ public class StorageCache {
 	}
 	
 	
-	private void flushData() throws IOException {	//Multicounter 3
+	private void flushData() throws IOException {	//MultiCounter 3
 		Data data;
 		int dataPageIndex;
-		if (StorageCache.retrievedDatas == null)
+		if (StorageCache.retrievedData == null)
 			return ;
-		for ( Object storageByteOffset : StorageCache.retrievedDatas.keySet() ) {
-			data = (Data)StorageCache.retrievedDatas.get(storageByteOffset);
+		for ( Object storageByteOffset : StorageCache.retrievedData.keySet() ) {
+			data = (Data)StorageCache.retrievedData.get(storageByteOffset);
 			if (data.isDirty()) {
 				// data.storageByteIndex tells us at which byte offset in the data file this data is stored
 				// From this value, and knowing our data page size, we can calculate the dataPageIndex of the data page in the data file
-				// This process may result in writing each data page multiple times if it contains multiple dirty Datas
+				// This process may result in writing each data page multiple times if it contains multiple dirty Data
 
 				byte[] byteArray = data.toByteArray();
 				//dataPageIndex = data.getStorageByteOffset() / BTreeNode.PageSize;
 				dataPageIndex = data.getStorageByteOffset() / 64;
 				RandomAccessFile fl = new RandomAccessFile (DATA_STORAGE_FILENAME, "rw");
-				fl.seek(data.getStorageByteOffset());			//go to page i want
+				fl.seek(data.getStorageByteOffset());			//go to page I want
 				fl.write(byteArray);
 				fl.close();	
 				// read datapage given by calculated dataPageIndex from data file
@@ -127,11 +126,11 @@ public class StorageCache {
 		}
 		
 		// reset it
-		StorageCache.retrievedDatas = null;	
+		StorageCache.retrievedData = null;
 	}
 	
 
-	public BTreeNode retrieveNode(Integer dataPageIndex) throws IOException {	//Multicounter 2
+	public BTreeNode retrieveNode(Integer dataPageIndex) throws IOException {	//MultiCounter 2
 		// if we have this dataPageIndex already in the cache, return it
 
 				// during a range search, we will potentially retrieve a large set of nodes, despite we will use them only once
@@ -184,14 +183,14 @@ public class StorageCache {
 	public Data retrieveData(int dataByteOffset) throws IOException {
 		// if we have this dataPageIndex already in the cache, return it
 		
-		// during a range search, we will potentially retrieve a large set of datas, despite we will use them only once
-		// We can optionally add here a case where "large" number of cached, NOT DIRTY (!) datas, are removed from memory
-		if (StorageCache.retrievedDatas != null && StorageCache.retrievedDatas.keySet().size() > 100) { // we do not want to have more than 100 datas in cache
+		// during a range search, we will potentially retrieve a large set of data, despite we will use them only once
+		// We can optionally add here a case where "large" number of cached, NOT DIRTY (!) data, are removed from memory
+		if (StorageCache.retrievedData != null && StorageCache.retrievedData.keySet().size() > 100) { // we do not want to have more than 100 data in cache
 			Data data;
-			for ( Object key : StorageCache.retrievedDatas.keySet() ) {
-				data = (Data)StorageCache.retrievedDatas.get(dataByteOffset);
+			for ( Object key : StorageCache.retrievedData.keySet() ) {
+				data = (Data)StorageCache.retrievedData.get(dataByteOffset);
 				if (!data.isDirty()) {
-					StorageCache.retrievedDatas.remove(key);
+					StorageCache.retrievedData.remove(key);
 				}
 			}
 		}
@@ -204,7 +203,7 @@ public class StorageCache {
 		
 		RandomAccessFile fl = new RandomAccessFile (DATA_STORAGE_FILENAME, "r");
 
-		fl.seek(dataByteOffset);			//go to page i want
+		fl.seek(dataByteOffset);			//go to page I want
 		byte[] ReadDataPage = new byte[BTreeNode.PageSize];	
 		fl.read(ReadDataPage);	
 		result = new Data();
@@ -225,7 +224,7 @@ public class StorageCache {
 	
 	public BTreeInnerNode newInnerNode() {
 		BTreeInnerNode result = new BTreeInnerNode();
-		this.aquireNodeStorage(result);
+		this.acquireNodeStorage(result);
 		result.setStorageDataPage(result.getStorageDataPage());////
 		result.setDirty();
 		this.cacheNode(result.getStorageDataPage(), result);
@@ -233,7 +232,7 @@ public class StorageCache {
 	}
 	public BTreeLeafNode newLeafNode() {
 		BTreeLeafNode result = new BTreeLeafNode();
-		this.aquireNodeStorage(result);
+		this.acquireNodeStorage(result);
 		result.setDirty();
 		this.cacheNode(result.getStorageDataPage(), result);
 		return result;
@@ -241,7 +240,7 @@ public class StorageCache {
 	
 	// opens our node/index file, calculates the dataPageIndex that corresponds to the end of the file (raf.length()) 
 	// and sets it on given node
-	private void aquireNodeStorage(BTreeNode node) {
+	private void acquireNodeStorage(BTreeNode node) {
 		try {
 			int dataPageIndex = 0;
 			RandomAccessFile fl = new RandomAccessFile (getNodeStorageFilename(), "rw");
@@ -258,14 +257,14 @@ public class StorageCache {
 			node.setStorageDataPage(dataPageIndex);
 			fl.close();
 		}catch(IOException e){
-			System.out.println("Error in aquireNodeStorage");
+			System.out.println("Error in acquireNodeStorage");
 		}
 	}
 	
 	public int newData(Data result, int nextFreeDatafileByteOffset) {
 		int NO_OF_DATA_BYTES = 32;
 		result.setStorageByteOffset(nextFreeDatafileByteOffset);
-		result.setDirty(); // so that it will written to disk at next flush
+		result.setDirty(); // so that it will be written to disk at next flush
 		this.cacheData(result.getStorageByteOffset(), result);
 		return nextFreeDatafileByteOffset + NO_OF_DATA_BYTES;
 	}
@@ -277,5 +276,5 @@ public class StorageCache {
 	public static String getDataStorageFilename() {
 		return DATA_STORAGE_FILENAME;
 	}
-	
+
 }

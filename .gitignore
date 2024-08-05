@@ -10,6 +10,7 @@
 # Compiled class files
 bin/
 target/
+out/
 
 # Compiled class file
 *.class
@@ -38,6 +39,9 @@ hs_err_pid*
 replay_pid*
 
 *.txt
+
+# Files created
+*.bin
 
 # IDEs and editors
 .idea/

@@ -5,23 +5,24 @@ import java.io.IOException;
 
 class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKey> {
 	protected final static int LEAFORDER = 29;
-	// private Object[] values;
+
 	// CHANGE FOR STORING ON FILE
-	private Object[] values; // integers pointing to byte offset in data file ///////na ginei Integer[] ??
+	private final Object[] values; // integers pointing to byte offset in data file
 	protected static int identifier = 0;
 
 	public BTreeLeafNode() {
-		this.keys = new Object[LEAFORDER];//
-		this.values =  new Object[LEAFORDER];//						//cast se Integer[]???
+		this.keys = new Object[LEAFORDER];
+		this.values =  new Object[LEAFORDER];
 	}
 
+
 	@SuppressWarnings("unchecked")
-	public TValue getValue(int index) {
+    public TValue getValue(int index) {
 		return (TValue)this.values[index];
 	}
 
 	public void setValue(int index, TValue value) {
-		this.values[index] = (Object)value;
+		this.values[index] = value;
 		setDirty(); // we changed a value, so this node is dirty and must be flushed to disk
 	}
 
@@ -111,7 +112,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	}
 
 	private void deleteAt(int index) {
-		int i = index;
+		int i;
 		for (i = index; i < this.getKeyCount() - 1; ++i) {
 			this.setKey(i, this.getKey(i + 1));
 			this.setValue(i, this.getValue(i + 1));
@@ -135,10 +136,9 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	/**
 	 * Notice that the key sunk from parent is be abandoned.
-	 * @throws IOException
+	 *
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	protected void fusionWithSibling(TKey sinkKey, BTreeNode<TKey> rightSibling) throws IOException {	//Multicounter 2
 		BTreeLeafNode<TKey, TValue> siblingLeaf = (BTreeLeafNode<TKey, TValue>)rightSibling;
 
@@ -155,7 +155,6 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex) {
 		BTreeLeafNode<TKey, TValue> siblingNode = (BTreeLeafNode<TKey, TValue>)sibling;
 

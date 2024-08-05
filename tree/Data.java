@@ -17,9 +17,7 @@ public class Data {
 	public Data() {
 	}
 	public Data(int [] data) {
-		for(int i = 0; i < data.length; i++) {
-			this.data[i] = data[i];
-		}
+        System.arraycopy(data, 0, this.data, 0, data.length);
 	}
 	
 	public Data(int a, int b, int c, int d,int e, int f, int g, int h) {
@@ -62,13 +60,13 @@ public class Data {
 	
 	
 	protected byte[] toByteArray() throws IOException {
-		byte[] byteArray = new byte[32]; // 32: demo size of our data. This should be some constant
+		byte[] byteArray;
 		
 		ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
     	DataOutputStream out = new DataOutputStream(bos);
-    	for(int i = 0; i < data.length; i++) {
-    		out.writeInt(this.data[i]);
-		}
+        for (int elem : data) {
+            out.writeInt(elem);
+        }
     	out.close();
     	byteArray = bos.toByteArray();
     	bos.close();

@@ -39,13 +39,13 @@ public class ByteConverter {
 	 */
 	public byte [] intArrayToByteArray(int [] intArray) {
 		try {
-			byte [] byteArray = new byte[intArray.length*4];
+			byte [] byteArray;
 	    	
 			ByteArrayOutputStream bos = new ByteArrayOutputStream() ;
 	    	DataOutputStream out = new DataOutputStream(bos);
-	    	for(int i =0; i<intArray.length;i++) {
-	    		out.writeInt(intArray[i]);
-		      }
+            for (int j : intArray) {
+                out.writeInt(j);
+            }
 	    	out.close();
 	    	byteArray = bos.toByteArray();
 	    	bos.close();
