@@ -3,7 +3,7 @@ B+ Tree implementation in Java
 
 Project assigned for the course of Data and File Structures in TUC ECE.
 
-10_exp5 keys are added to the tree and the mean number of disk accesses for
+10<sup>5</sup> keys are added to the tree and the mean number of disk accesses for
 
 - Insertion
 - Delete
