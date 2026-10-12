@@ -12,4 +12,3 @@ Project assigned for the course of Data and File Structures in TUC ECE.
 
 are calclulated.
 
-Take a look at the counters-feature branch to see the implementation and details of the course assignment. 
